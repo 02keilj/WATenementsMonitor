@@ -14,13 +14,19 @@ import os
 from os.path import exists
 from zipfile import ZipFile
 import pandas as pd
+import pytz
+
 
 
 # set global varibales
 
 # set current and previous weekday dates
-currDate = datetime.today().strftime('%Y-%m-%d')
-prevWeekDay = date.today() - timedelta(days=[3,1,1,1,1,1,2][date.today().weekday()])
+timezone = pytz.timezone('Australia/Perth')
+currDate = datetime.now(timezone).strftime('%Y-%m-%d')
+prevWeekDay = str(datetime.now(timezone) - timedelta(days=[3,1,1,1,1,1,2][date.today().weekday()]))[:10]
+
+print(currDate)
+print(prevWeekDay)
 
 # set tenementsZIP variables
 dirPath = os.path.dirname(os.path.abspath(__file__))
@@ -36,7 +42,7 @@ def get_new_data():
     """
     
     tenementsFileURL = "https://dasc.dmp.wa.gov.au/dasc/download/file/2053"
-    
+    print("Downloading new data.")
     # get file and write bytes to file
     req = requests.get(tenementsFileURL)
     if req.status_code != 200:
@@ -68,6 +74,7 @@ def load_data_to_frame(currCSV, prevCSV):
                      'GRANTTIME', 'UNIT_OF_MEASURE', 'EXTRACT_DATE',
                      'COMBINED_REPORTING_NO', 'ALL_HOLDERS']
 
+    print("Loading data to frames.")
     dfCurrent = pd.read_csv(currCSV)
     dfPrevious = pd.read_csv(prevCSV, encoding='latin1')
 
@@ -78,6 +85,7 @@ def load_data_to_frame(currCSV, prevCSV):
 
 def compare_data(dfCurrent, dfPrevious):
 
+    print("Comparing data.")
     dfCompare = pd.merge(dfCurrent, dfPrevious, how='outer', indicator=True)
     dfChanges = dfCompare.loc[dfCompare['_merge'] != 'both']
 
